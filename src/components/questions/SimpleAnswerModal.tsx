@@ -315,7 +315,7 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
       <div className="space-y-6">
         {/* Question Display */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-sm backdrop-blur-sm">
-          <h3 className="font-semibold text-gray-900 mb-3 text-lg">{question.text}</h3>
+          <h3 className="font-semibold text-gray-900 mb-3 text-lg whitespace-pre-wrap">{question.text}</h3>
           <div className="text-sm text-blue-700 flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span>Asked by <span className="font-medium">{question.user?.name}</span> in <span className="font-medium">{question.group?.name}</span></span>
@@ -349,7 +349,7 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
                   rows={4}
                   autoFocus
                 />
-                <button
+                {/* <button
                   type="button"
                   onClick={toggleRecording}
                   className={cn(
@@ -365,14 +365,14 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
                   ) : (
                     <Mic className="w-5 h-5" />
                   )}
-                </button>
+                </button> */}
               </div>
-              {isRecording && (
+              {/* {isRecording && (
                 <p className="text-sm text-red-600 mt-2 animate-pulse flex items-center">
                   <div className="w-2 h-2 bg-red-500 rounded-full mr-2 animate-ping"></div>
                   🎤 Listening... Speak clearly and pause when finished
                 </p>
-              )}
+              )} */}
               {!recognition && (
                 <p className="text-sm text-gray-500 mt-2">
                   💡 Speech recognition requires Chrome, Edge, or Safari browser

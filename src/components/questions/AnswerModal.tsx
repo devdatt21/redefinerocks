@@ -143,7 +143,7 @@ export const AnswerModal: React.FC<AnswerModalProps> = ({
       <div className="space-y-6">
         {/* Question Display */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-sm backdrop-blur-sm">
-          <h3 className="font-semibold text-gray-900 mb-3 text-lg">{question.text}</h3>
+          <h3 className="font-semibold text-gray-900 mb-3 text-lg whitespace-pre-wrap">{question.text}</h3>
           <div className="text-sm text-blue-700 flex items-center space-x-2">
             <User className="w-4 h-4" />
             <span>Asked by <span className="font-medium">{question.user?.name}</span> in <span className="font-medium">{question.group?.name}</span></span>
@@ -245,7 +245,7 @@ export const AnswerModal: React.FC<AnswerModalProps> = ({
                       <span className="text-sm font-medium">{answer._count?.likes || 0}</span>
                     </div>
                   </div>
-                  <p className="text-gray-900 leading-relaxed">{answer.text}</p>
+                  <p className="text-gray-900 leading-relaxed whitespace-pre-wrap">{answer.text}</p>
                   {answer.audioUrl && (
                     <div className="mt-4 p-3 bg-white/50 rounded-lg border border-gray-200">
                       <audio controls className="w-full">

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { QuestionList } from '@/components/questions/QuestionList';
@@ -10,7 +10,11 @@ import { SimpleAnswerModal } from '@/components/questions/SimpleAnswerModal';
 import { QuestionDetailModal } from '@/components/questions/QuestionDetailModal';
 import { Question } from '@/types';
 
-export const MainApp: React.FC = () => {
+interface MainAppProps {
+  initialQuestionId?: string;
+}
+
+export const MainApp: React.FC<MainAppProps> = ({ initialQuestionId }) => {
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
@@ -21,6 +25,29 @@ export const MainApp: React.FC = () => {
   const [selectedQuestion, setSelectedQuestion] = useState<Question | null>(null);
   const [refreshGroups, setRefreshGroups] = useState(0);
   const [refreshQuestions, setRefreshQuestions] = useState(0);
+
+  // Handle initial question ID from URL
+  useEffect(() => {
+    if (initialQuestionId) {
+      // Fetch the question details and open the modal
+      fetchQuestionById(initialQuestionId);
+    }
+  }, [initialQuestionId]);
+
+  const fetchQuestionById = async (questionId: string) => {
+    try {
+      const response = await fetch(`/api/questions/${questionId}`);
+      if (response.ok) {
+        const question = await response.json();
+        setSelectedQuestion(question);
+        setShowQuestionDetailModal(true);
+      } else {
+        console.error('Question not found');
+      }
+    } catch (error) {
+      console.error('Error fetching question:', error);
+    }
+  };
 
   const handleGroupSelect = (groupId?: string) => {
     setSelectedGroupId(groupId);
@@ -61,7 +88,7 @@ export const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="h-screen bg-gradient-to-br from-gray-50 to-blue-50/30 flex">
+    <div className="h-screen bg-white flex">
       <Sidebar
         selectedGroupId={selectedGroupId}
         onGroupSelect={handleGroupSelect}

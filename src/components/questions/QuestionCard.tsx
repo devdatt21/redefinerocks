@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { Question, User } from '@/types';
 import { Button } from '../ui/Button';
-import { Heart, MessageCircle, User as UserIcon } from 'lucide-react';
+import { Heart, MessageCircle, User as UserIcon, Share2, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface QuestionCardProps {
@@ -22,6 +22,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   const [likeCount, setLikeCount] = useState(question._count?.likes || 0);
   const [isLiked, setIsLiked] = useState(false);
   const [liking, setLiking] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   const handleLike = async () => {
     if (liking || !currentUser) return;
@@ -51,6 +52,28 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
     }
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering question click
+    const questionUrl = `${window.location.origin}/question/${question.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(questionUrl);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    } catch (error) {
+      console.error('Failed to copy URL:', error);
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = questionUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      setCopySuccess(true);
+      setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
   return (
     <div className="bg-gradient-to-r from-white to-gray-50/50 rounded-xl shadow-sm border border-gray-200/50 hover:shadow-lg transition-all duration-200 backdrop-blur-sm overflow-hidden">
       {/* Clickable area for question details */}
@@ -73,7 +96,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               </span>
             </div>
 
-            <p className="text-gray-900 text-lg mb-4 leading-relaxed font-medium">{question.text}</p>
+            <p className="text-gray-900 text-lg mb-4 leading-relaxed font-medium whitespace-pre-wrap">{question.text}</p>
             
             <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center space-x-1 text-gray-600">
@@ -94,22 +117,41 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
       {/* Action buttons bar */}
       <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-200/50 flex items-center justify-between">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleLike();
-          }}
-          disabled={liking}
-          className={cn(
-            'flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium',
-            isLiked
-              ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-600 border border-red-200/50 shadow-sm'
-              : 'text-gray-600 hover:bg-gray-100/50 hover:shadow-sm border border-transparent'
-          )}
-        >
-          <Heart className={cn('w-4 h-4', isLiked && 'fill-current')} />
-          <span>Like</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleLike();
+            }}
+            disabled={liking}
+            className={cn(
+              'flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium',
+              isLiked
+                ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-600 border border-red-200/50 shadow-sm'
+                : 'text-gray-600 hover:bg-gray-100/50 hover:shadow-sm border border-transparent'
+            )}
+          >
+            <Heart className={cn('w-4 h-4', isLiked && 'fill-current')} />
+            <span>Like</span>
+          </button>
+
+          <button
+            onClick={handleShare}
+            className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200"
+          >
+            {copySuccess ? (
+              <>
+                <Check className="w-4 h-4 text-green-600" />
+                <span className="text-green-600 font-medium">Copied!</span>
+              </>
+            ) : (
+              <>
+                <Share2 className="w-4 h-4" />
+                <span className="font-medium">Share</span>
+              </>
+            )}
+          </button>
+        </div>
 
         <Button
           variant="primary"
