@@ -1,0 +1,94 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  groups    Group[]
+  questions Question[]
+  answers   Answer[]
+  likes     Like[]
+
+  @@map("users")
+}
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  questions Question[]
+
+  @@map("groups")
+}
+
+model Question {
+  id        String   @id @default(cuid())
+  text      String
+  groupId   String
+  createdBy String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  answers Answer[]
+
+  @@map("questions")
+}
+
+model Answer {
+  id         String   @id @default(cuid())
+  text       String?
+  audioUrl   String?
+  questionId String
+  createdBy  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  user     User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  question Question @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("answers")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  type      LikeType
+  refId     String   // questionId or answerId
+  userId    String
+  createdAt DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Ensure one like per user per item
+  @@unique([refId, userId])
+  @@map("likes")
+}
+
+enum LikeType {
+  QUESTION
+  ANSWER
+}
