@@ -40,7 +40,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   return (
-    <div className="w-64 bg-gradient-to-b from-white to-gray-50/50 border-r border-gray-200/50 h-full flex flex-col backdrop-blur-sm">
+    <div className="w-64 bg-gradient-to-b from-white to-gray-50/50 border-r border-gray-200/50 h-screen flex flex-col backdrop-blur-sm shadow-lg">
       <div className="p-6 border-b border-gray-200/50">
         <div className="text-center mb-4">
           <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-2xl mx-auto flex items-center justify-center mb-3 shadow-lg">
@@ -57,7 +57,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className="w-full"
           onClick={onCreateGroupClick}
         >
-          ✨ New Group
+          New Group
         </Button>
       </div>
 

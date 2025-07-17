@@ -86,7 +86,7 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="💭 Ask a Question">
+    <Modal isOpen={isOpen} onClose={handleClose} title="💭 Ask a Question" size="full">
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-800 rounded-xl shadow-sm animate-pulse">
@@ -108,9 +108,12 @@ export const CreateQuestionModal: React.FC<CreateQuestionModalProps> = ({
             value={formData.text}
             onChange={(e) => setFormData(prev => ({ ...prev, text: e.target.value }))}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 bg-white/50 backdrop-blur-sm hover:bg-white/80 resize-none text-gray-900"
-            rows={4}
+            rows={12}
             required
           />
+          <p className="text-xs text-gray-500 mt-2">
+            💡 Take your time to write a detailed question. The more specific you are, the better answers you&apos;ll get!
+          </p>
         </div>
 
         <div className="space-y-1">

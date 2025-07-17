@@ -89,30 +89,36 @@ export const MainApp: React.FC<MainAppProps> = ({ initialQuestionId }) => {
 
   return (
     <div className="h-screen bg-white flex">
-      <Sidebar
-        selectedGroupId={selectedGroupId}
-        onGroupSelect={handleGroupSelect}
-        onCreateGroupClick={() => setShowCreateGroupModal(true)}
-        refreshTrigger={refreshGroups}
-      />
-      
-      <div className="flex-1 flex flex-col">
-        <Header
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          sortBy={sortBy}
-          onSortChange={setSortBy}
-          onCreateQuestionClick={() => setShowCreateQuestionModal(true)}
-        />
-        
-        <QuestionList
-          searchQuery={searchQuery}
-          sortBy={sortBy}
+      <div className="w-64 fixed left-0 top-0 h-full z-10">
+        <Sidebar
           selectedGroupId={selectedGroupId}
-          refreshTrigger={refreshQuestions}
-          onAnswerClick={handleAnswerClick}
-          onQuestionClick={handleQuestionClick}
+          onGroupSelect={handleGroupSelect}
+          onCreateGroupClick={() => setShowCreateGroupModal(true)}
+          refreshTrigger={refreshGroups}
         />
+      </div>
+      
+      <div className="flex-1 ml-64 flex flex-col h-screen">
+        <div className="sticky top-0 z-20 bg-white">
+          <Header
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            onCreateQuestionClick={() => setShowCreateQuestionModal(true)}
+          />
+        </div>
+        
+        <div className="flex-1 overflow-y-auto">
+          <QuestionList
+            searchQuery={searchQuery}
+            sortBy={sortBy}
+            selectedGroupId={selectedGroupId}
+            refreshTrigger={refreshQuestions}
+            onAnswerClick={handleAnswerClick}
+            onQuestionClick={handleQuestionClick}
+          />
+        </div>
       </div>
 
       {/* Full screen Create Group Modal */}

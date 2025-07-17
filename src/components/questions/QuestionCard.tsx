@@ -1,14 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Question, User } from '@/types';
+import { Question } from '@/types';
 import { Button } from '../ui/Button';
 import { Heart, MessageCircle, User as UserIcon, Share2, Check } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
 interface QuestionCardProps {
   question: Question;
-  currentUser?: User;
   onAnswerClick?: (question: Question) => void;
   onQuestionClick?: (question: Question) => void;
   searchQuery?: string;
@@ -16,14 +15,10 @@ interface QuestionCardProps {
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
-  currentUser,
   onAnswerClick,
   onQuestionClick,
   searchQuery,
 }) => {
-  const [likeCount, setLikeCount] = useState(question._count?.likes || 0);
-  const [isLiked, setIsLiked] = useState(false);
-  const [liking, setLiking] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
   // Helper function to highlight search matches
@@ -44,34 +39,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
 
   // Check if user name matches search query
   const isUserMatch = searchQuery && question.user?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-
-  const handleLike = async () => {
-    if (liking || !currentUser) return;
-
-    setLiking(true);
-    try {
-      const response = await fetch('/api/likes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'QUESTION',
-          refId: question.id,
-        }),
-      });
-
-      if (response.ok) {
-        const { liked } = await response.json();
-        setIsLiked(liked);
-        setLikeCount(prev => liked ? prev + 1 : prev - 1);
-      }
-    } catch (error) {
-      console.error('Error liking question:', error);
-    } finally {
-      setLiking(false);
-    }
-  };
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering question click
@@ -134,7 +101,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
             <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center space-x-1 text-gray-600">
                 <Heart className="w-4 h-4" />
-                <span className="font-medium">{likeCount} likes</span>
+                <span className="font-medium">{question._count?.likes || 0} likes</span>
               </div>
               <div className="flex items-center space-x-1 text-gray-600">
                 <MessageCircle className="w-4 h-4" />
@@ -151,7 +118,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       {/* Action buttons bar */}
       <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-200/50 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <button
+          {/* <button
             onClick={(e) => {
               e.stopPropagation();
               handleLike();
@@ -166,7 +133,7 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           >
             <Heart className={cn('w-4 h-4', isLiked && 'fill-current')} />
             <span>Like</span>
-          </button>
+          </button> */}
 
           <button
             onClick={handleShare}

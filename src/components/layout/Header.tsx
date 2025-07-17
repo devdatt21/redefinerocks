@@ -23,7 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
 
   return (
-    <div className="bg-gradient-to-r from-white to-gray-50/50 border-b border-gray-200/50 p-6 backdrop-blur-sm">
+    <div className="bg-gradient-to-r from-white to-gray-50/50 border-b border-gray-200/50 px-4 py-2 backdrop-blur-sm">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4 flex-1">
           <div className="relative flex-1 max-w-md">
@@ -57,7 +57,7 @@ export const Header: React.FC<HeaderProps> = ({
             variant="primary"
             onClick={onCreateQuestionClick}
           >
-            ✨ Add Question
+            Add Question
           </Button>
           
           <UserMenu />

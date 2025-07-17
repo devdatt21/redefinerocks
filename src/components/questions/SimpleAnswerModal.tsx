@@ -286,7 +286,7 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="💬 Write Your Answer" size="lg">
+    <Modal isOpen={isOpen} onClose={handleClose} title="💬 Write Your Answer" size="full">
       <div className="space-y-6">
         {/* Question Display */}
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100 shadow-sm backdrop-blur-sm">

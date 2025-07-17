@@ -60,7 +60,7 @@ export const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={handleClose} title="✨ Create New Group">
+    <Modal isOpen={isOpen} onClose={handleClose} title="✨ Create New Group" size="full">
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (
           <div className="p-4 bg-gradient-to-r from-red-50 to-red-100 border border-red-200 text-red-800 rounded-xl shadow-sm animate-pulse">
