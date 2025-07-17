@@ -199,3 +199,103 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { id, text } = body;
+
+    if (!id || !text?.trim()) {
+      return NextResponse.json({ error: 'Question ID and text are required' }, { status: 400 });
+    }
+
+    // Check if user owns the question
+    const existingQuestion = await prisma.question.findUnique({
+      where: { id },
+      select: { createdBy: true }
+    });
+
+    if (!existingQuestion || existingQuestion.createdBy !== session.user.id) {
+      return NextResponse.json({ error: 'Question not found or unauthorized' }, { status: 404 });
+    }
+
+    const question = await prisma.question.update({
+      where: { id },
+      data: {
+        text: text.trim(),
+      },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        },
+        group: {
+          select: { id: true, name: true }
+        },
+        _count: {
+          select: { answers: true }
+        }
+      }
+    });
+
+    // Get likes count separately
+    const likesCount = await prisma.like.count({
+      where: {
+        refId: question.id,
+        type: 'QUESTION'
+      }
+    });
+
+    const questionWithLikes = {
+      ...question,
+      _count: {
+        ...question._count,
+        likes: likesCount
+      }
+    };
+
+    return NextResponse.json(questionWithLikes);
+  } catch (error) {
+    console.error('Error updating question:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ error: 'Question ID is required' }, { status: 400 });
+    }
+
+    // Check if user owns the question
+    const existingQuestion = await prisma.question.findUnique({
+      where: { id },
+      select: { createdBy: true }
+    });
+
+    if (!existingQuestion || existingQuestion.createdBy !== session.user.id) {
+      return NextResponse.json({ error: 'Question not found or unauthorized' }, { status: 404 });
+    }
+
+    await prisma.question.delete({
+      where: { id }
+    });
+
+    return NextResponse.json({ message: 'Question deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting question:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

@@ -9,8 +9,10 @@ interface QuestionListProps {
   sortBy: string;
   selectedGroupId?: string;
   refreshTrigger?: number;
+  currentUserId?: string;
   onAnswerClick?: (question: Question) => void;
   onQuestionClick?: (question: Question) => void;
+  onQuestionsChange?: () => void;
 }
 
 export const QuestionList: React.FC<QuestionListProps> = ({
@@ -18,8 +20,10 @@ export const QuestionList: React.FC<QuestionListProps> = ({
   sortBy,
   selectedGroupId,
   refreshTrigger,
+  currentUserId,
   onAnswerClick,
   onQuestionClick,
+  onQuestionsChange,
 }) => {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,8 +106,10 @@ export const QuestionList: React.FC<QuestionListProps> = ({
             <QuestionCard 
               key={question.id} 
               question={question} 
+              currentUserId={currentUserId}
               onAnswerClick={onAnswerClick}
               onQuestionClick={onQuestionClick}
+              onQuestionChange={onQuestionsChange}
               searchQuery={searchQuery}
             />
           ))}

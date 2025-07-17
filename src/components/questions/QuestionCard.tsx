@@ -1,25 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Question } from '@/types';
 import { Button } from '../ui/Button';
-import { Heart, MessageCircle, User as UserIcon, Share2, Check } from 'lucide-react';
+import { Heart, MessageCircle, User as UserIcon, Share2, Check, Edit, Trash2 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { EditQuestionModal } from './EditQuestionModal';
+import { DeleteConfirmModal } from '../ui/DeleteConfirmModal';
 
 interface QuestionCardProps {
   question: Question;
+  currentUserId?: string;
   onAnswerClick?: (question: Question) => void;
   onQuestionClick?: (question: Question) => void;
+  onQuestionChange?: () => void;
   searchQuery?: string;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
   question,
+  currentUserId,
   onAnswerClick,
   onQuestionClick,
+  onQuestionChange,
   searchQuery,
 }) => {
   const [copySuccess, setCopySuccess] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const isOwner = currentUserId === question.createdBy;
 
   // Helper function to highlight search matches
   const highlightSearchMatch = (text: string, query: string) => {
@@ -59,6 +70,24 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       document.body.removeChild(textArea);
       setCopySuccess(true);
       setTimeout(() => setCopySuccess(false), 2000);
+    }
+  };
+
+  const handleDeleteQuestion = async () => {
+    try {
+      const response = await fetch(`/api/questions?id=${question.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        onQuestionChange?.();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete question');
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+      alert('Failed to delete question');
     }
   };
 
@@ -118,23 +147,6 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
       {/* Action buttons bar */}
       <div className="px-6 py-4 bg-gray-50/50 border-t border-gray-200/50 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          {/* <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleLike();
-            }}
-            disabled={liking}
-            className={cn(
-              'flex items-center space-x-2 px-4 py-2 rounded-xl transition-all duration-200 font-medium',
-              isLiked
-                ? 'bg-gradient-to-r from-red-100 to-pink-100 text-red-600 border border-red-200/50 shadow-sm'
-                : 'text-gray-600 hover:bg-gray-100/50 hover:shadow-sm border border-transparent'
-            )}
-          >
-            <Heart className={cn('w-4 h-4', isLiked && 'fill-current')} />
-            <span>Like</span>
-          </button> */}
-
           <button
             onClick={handleShare}
             className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200"
@@ -151,6 +163,33 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               </>
             )}
           </button>
+
+          {/* Owner actions */}
+          {isOwner && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowEditModal(true);
+                }}
+                className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200 border border-transparent hover:border-blue-200"
+              >
+                <Edit className="w-4 h-4" />
+                <span className="font-medium">Edit</span>
+              </button>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteModal(true);
+                }}
+                className="flex items-center space-x-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 border border-transparent hover:border-red-200"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span className="font-medium">Delete</span>
+              </button>
+            </>
+          )}
         </div>
 
         <Button
@@ -164,6 +203,29 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
           💬 Answer
         </Button>
       </div>
+
+      {/* Render modals using portals to ensure they appear at the root level */}
+      {typeof window !== 'undefined' && showEditModal && createPortal(
+        <EditQuestionModal
+          isOpen={showEditModal}
+          onClose={() => setShowEditModal(false)}
+          question={question}
+          onUpdate={onQuestionChange || (() => {})}
+        />,
+        document.body
+      )}
+
+      {typeof window !== 'undefined' && showDeleteModal && createPortal(
+        <DeleteConfirmModal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          onConfirm={handleDeleteQuestion}
+          title="Delete Question"
+          message="Are you sure you want to delete this question?"
+          itemName={question.text.length > 50 ? question.text.substring(0, 50) + '...' : question.text}
+        />,
+        document.body
+      )}
     </div>
   );
 };

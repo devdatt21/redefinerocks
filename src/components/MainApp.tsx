@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { QuestionList } from '@/components/questions/QuestionList';
@@ -15,6 +16,7 @@ interface MainAppProps {
 }
 
 export const MainApp: React.FC<MainAppProps> = ({ initialQuestionId }) => {
+  const { data: session } = useSession();
   const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>();
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState('recent');
@@ -115,8 +117,10 @@ export const MainApp: React.FC<MainAppProps> = ({ initialQuestionId }) => {
             sortBy={sortBy}
             selectedGroupId={selectedGroupId}
             refreshTrigger={refreshQuestions}
+            currentUserId={session?.user?.id}
             onAnswerClick={handleAnswerClick}
             onQuestionClick={handleQuestionClick}
+            onQuestionsChange={() => setRefreshQuestions(prev => prev + 1)}
           />
         </div>
       </div>

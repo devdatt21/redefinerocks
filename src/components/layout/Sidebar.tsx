@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Group } from '@/types';
 import { Button } from '../ui/Button';
 import { cn } from '@/utils/cn';
+import { EditGroupModal } from './EditGroupModal';
+import { DeleteConfirmModal } from '../ui/DeleteConfirmModal';
 
 interface SidebarProps {
   selectedGroupId?: string;
@@ -20,6 +23,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingGroup, setEditingGroup] = useState<Group | null>(null);
+  const [deletingGroup, setDeletingGroup] = useState<Group | null>(null);
 
   useEffect(() => {
     fetchGroups();
@@ -36,6 +41,30 @@ export const Sidebar: React.FC<SidebarProps> = ({
       console.error('Error fetching groups:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteGroup = async () => {
+    if (!deletingGroup) return;
+
+    try {
+      const response = await fetch(`/api/groups?id=${deletingGroup.id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // If the deleted group was selected, clear selection
+        if (selectedGroupId === deletingGroup.id) {
+          onGroupSelect(undefined);
+        }
+        fetchGroups();
+      } else {
+        const errorData = await response.json();
+        alert(errorData.error || 'Failed to delete group');
+      }
+    } catch (error) {
+      console.error('Error deleting group:', error);
+      alert('Failed to delete group');
     }
   };
 
@@ -84,29 +113,61 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className="p-3 space-y-2">
             {groups.map((group) => (
-              <button
+              <div
                 key={group.id}
-                onClick={() => onGroupSelect(group.id)}
                 className={cn(
-                  'w-full text-left px-4 py-3 rounded-xl transition-all duration-200',
+                  'rounded-xl transition-all duration-200 border',
                   selectedGroupId === group.id
-                    ? 'bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 shadow-sm border border-blue-200/50'
-                    : 'text-gray-700 hover:bg-gray-100/50 hover:shadow-sm'
+                    ? 'bg-gradient-to-r from-blue-100 to-purple-100 border-blue-200/50'
+                    : 'border-transparent hover:bg-gray-100/50'
                 )}
               >
-                <div>
-                  <div className="font-semibold text-gray-900">{group.name}</div>
-                  {group.description && (
-                    <div className="text-sm text-gray-600 truncate mt-1">
-                      {group.description}
+                <button
+                  onClick={() => onGroupSelect(group.id)}
+                  className="w-full text-left px-4 py-3"
+                >
+                  <div>
+                    <div className={cn(
+                      "font-semibold",
+                      selectedGroupId === group.id ? "text-blue-700" : "text-gray-900"
+                    )}>
+                      {group.name}
                     </div>
-                  )}
-                  <div className="text-xs text-gray-500 mt-2 flex items-center">
-                    <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
-                    {group._count?.questions || 0} questions
+                    {group.description && (
+                      <div className="text-sm text-gray-600 truncate mt-1">
+                        {group.description}
+                      </div>
+                    )}
+                    <div className="text-xs text-gray-500 mt-2 flex items-center">
+                      <span className="w-1.5 h-1.5 bg-green-500 rounded-full mr-2"></span>
+                      {group._count?.questions || 0} questions
+                    </div>
                   </div>
+                </button>
+                
+                <div className="px-4 pb-3 flex gap-1">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingGroup(group);
+                    }}
+                    className="flex-1 px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                    title="Edit group"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeletingGroup(group);
+                    }}
+                    className="flex-1 px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                    title="Delete group"
+                  >
+                    Delete
+                  </button>
                 </div>
-              </button>
+              </div>
             ))}
             {groups.length === 0 && (
               <div className="text-center py-8">
@@ -118,6 +179,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         )}
       </div>
+
+      {/* Render modals using portals to ensure they appear at the root level */}
+      {typeof window !== 'undefined' && editingGroup && createPortal(
+        <EditGroupModal
+          isOpen={!!editingGroup}
+          onClose={() => setEditingGroup(null)}
+          group={editingGroup}
+          onUpdate={fetchGroups}
+        />,
+        document.body
+      )}
+
+      {typeof window !== 'undefined' && deletingGroup && createPortal(
+        <DeleteConfirmModal
+          isOpen={!!deletingGroup}
+          onClose={() => setDeletingGroup(null)}
+          onConfirm={handleDeleteGroup}
+          title="Delete Group"
+          message="Are you sure you want to delete this group?"
+          itemName={deletingGroup.name}
+        />,
+        document.body
+      )}
     </div>
   );
 };
