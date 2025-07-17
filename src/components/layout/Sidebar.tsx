@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
+import { useSession } from 'next-auth/react';
 import { Group } from '@/types';
 import { Button } from '../ui/Button';
 import { cn } from '@/utils/cn';
@@ -21,6 +22,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onCreateGroupClick,
   refreshTrigger,
 }) => {
+  const { data: session } = useSession();
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingGroup, setEditingGroup] = useState<Group | null>(null);
@@ -112,7 +114,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         ) : (
           <div className="p-3 space-y-2">
-            {groups.map((group) => (
+            {groups.map((group) => {
+              const isOwner = session?.user?.id === group.createdBy;
+              
+              return (
               <div
                 key={group.id}
                 className={cn(
@@ -128,10 +133,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 >
                   <div>
                     <div className={cn(
-                      "font-semibold",
+                      "font-semibold flex items-center gap-2",
                       selectedGroupId === group.id ? "text-blue-700" : "text-gray-900"
                     )}>
                       {group.name}
+                      {isOwner && (
+                        <span className="text-xs bg-gradient-to-r from-green-100 to-green-200 text-green-700 px-2 py-0.5 rounded-full border border-green-300">
+                          👑 Owner
+                        </span>
+                      )}
                     </div>
                     {group.description && (
                       <div className="text-sm text-gray-600 truncate mt-1">
@@ -145,30 +155,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   </div>
                 </button>
                 
-                <div className="px-4 pb-3 flex gap-1">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingGroup(group);
-                    }}
-                    className="flex-1 px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
-                    title="Edit group"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeletingGroup(group);
-                    }}
-                    className="flex-1 px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
-                    title="Delete group"
-                  >
-                    Delete
-                  </button>
-                </div>
+                {/* Only show edit/delete buttons for group owners */}
+                {isOwner && (
+                  <div className="px-4 pb-3 flex gap-1">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingGroup(group);
+                      }}
+                      className="flex-1 px-2 py-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors"
+                      title="Edit group"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeletingGroup(group);
+                      }}
+                      className="flex-1 px-2 py-1 text-xs bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      title="Delete group"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
               </div>
-            ))}
+              );
+            })}
             {groups.length === 0 && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">📁</div>
