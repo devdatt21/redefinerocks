@@ -22,12 +22,30 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
 }) => {
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [loading, setLoading] = useState(false);
-  const [likeCount, setLikeCount] = useState(question._count?.likes || 0);
+  const [likeCount, setLikeCount] = useState<number>(0);
   const [isLiked, setIsLiked] = useState(false);
   const [liking, setLiking] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
 
+  // Initialize like count when question changes
+  useEffect(() => {
+    setLikeCount(question._count?.likes || 0);
+  }, [question._count?.likes]);
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setAnswers([]);
+      setLoading(false);
+      setIsLiked(false);
+      setLiking(false);
+      setCopySuccess(false);
+    }
+  }, [isOpen]);
+
   const fetchQuestionDetails = useCallback(async () => {
+    if (!question?.id) return;
+    
     setLoading(true);
     try {
       const response = await fetch(`/api/questions/${question.id}`);
@@ -41,16 +59,16 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
     } finally {
       setLoading(false);
     }
-  }, [question.id]);
+  }, [question?.id]);
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && question?.id) {
       fetchQuestionDetails();
     }
-  }, [isOpen, question.id, fetchQuestionDetails]);
+  }, [isOpen, question?.id, fetchQuestionDetails]);
 
   const handleLike = async () => {
-    if (liking) return;
+    if (liking || !question?.id) return;
 
     setLiking(true);
     try {
@@ -67,8 +85,8 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
 
       if (response.ok) {
         const { liked } = await response.json();
-        setIsLiked(liked);
-        setLikeCount((prev: number) => liked ? prev + 1 : prev - 1);
+        setIsLiked(Boolean(liked));
+        setLikeCount((prev) => liked ? prev + 1 : Math.max(prev - 1, 0));
       }
     } catch (error) {
       console.error('Error liking question:', error);
@@ -92,19 +110,21 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
 
       if (response.ok) {
         const { liked } = await response.json();
-        setAnswers((prev: Answer[]) => prev.map((answer: Answer) => 
-          answer.id === answerId 
-            ? { 
-                ...answer, 
-                _count: { 
-                  ...answer._count, 
-                  likes: liked 
-                    ? (answer._count?.likes || 0) + 1 
-                    : Math.max((answer._count?.likes || 0) - 1, 0)
-                } 
-              }
-            : answer
-        ));
+        setAnswers((prev) => 
+          prev.map((answer) => {
+            if (answer.id === answerId) {
+              const currentLikes = answer._count?.likes || 0;
+              return {
+                ...answer,
+                _count: {
+                  ...answer._count,
+                  likes: liked ? currentLikes + 1 : Math.max(currentLikes - 1, 0)
+                }
+              };
+            }
+            return answer;
+          })
+        );
       }
     } catch (error) {
       console.error('Error liking answer:', error);
@@ -247,7 +267,10 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
           ) : (
             <div className="space-y-6">
               {answers.map((answer, index) => (
-                <div key={answer.id} className="bg-gradient-to-r from-white to-gray-50/50 p-6 sm:p-8 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm">
+                <div 
+                  key={`answer-${answer.id}-${index}`} 
+                  className="bg-gradient-to-r from-white to-gray-50/50 p-6 sm:p-8 rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200 backdrop-blur-sm"
+                >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4 text-sm text-gray-600">
                       <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center shadow-md">
@@ -258,11 +281,6 @@ export const QuestionDetailModal: React.FC<QuestionDetailModalProps> = ({
                         <div className="flex items-center space-x-3 text-gray-500 mt-1">
                           <Clock className="w-4 h-4" />
                           <span>{new Date(answer.createdAt).toLocaleDateString()}</span>
-                          {index === 0 && (
-                            <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-emerald-100 text-green-700 rounded-full text-sm font-medium border border-green-200/50">
-                              ✨ First Answer
-                            </span>
-                          )}
                         </div>
                       </div>
                     </div>

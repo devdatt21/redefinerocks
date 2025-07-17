@@ -5,7 +5,6 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Question, CreateAnswerData } from '@/types';
 import { Mic, MicOff, User } from 'lucide-react';
-import { cn } from '@/utils/cn';
 
 interface AnswerModalProps {
   isOpen: boolean;
@@ -114,30 +113,6 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
-
-  const toggleRecording = async () => {
-    if (!recognition) {
-      setError('Speech recognition is not supported in your browser. Please use Chrome, Edge, or Safari.');
-      return;
-    }
-
-    if (isRecording) {
-      recognition.stop();
-      setIsRecording(false);
-    } else {
-      // Clear any previous errors
-      setError('');
-      
-      try {
-        // Request microphone permission explicitly
-        await navigator.mediaDevices.getUserMedia({ audio: true });
-        recognition.start();
-      } catch (error) {
-        console.error('Microphone permission error:', error);
-        setError('Microphone access denied. Please allow microphone permissions in your browser settings.');
-      }
-    }
-  };
 
   const startAudioRecording = async () => {
     try {
@@ -351,7 +326,7 @@ export const SimpleAnswerModal: React.FC<AnswerModalProps> = ({
                 />
                 {/* <button
                   type="button"
-                  onClick={toggleRecording}
+                  onClick={handleToggleRecording}
                   className={cn(
                     'absolute right-3 top-3 p-2 rounded-xl transition-all duration-200 transform hover:scale-105',
                     isRecording

@@ -79,6 +79,7 @@ export default function SignIn() {
             placeholder="your.name@redefinesolutions.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            className='text-gray-900'
             required
           />
 
@@ -88,6 +89,7 @@ export default function SignIn() {
             placeholder="Enter company password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            className='text-gray-900'
             required
           />
 

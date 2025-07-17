@@ -102,7 +102,6 @@ export const MainApp: React.FC<MainAppProps> = ({ initialQuestionId }) => {
           onSearchChange={setSearchQuery}
           sortBy={sortBy}
           onSortChange={setSortBy}
-          selectedGroupId={selectedGroupId}
           onCreateQuestionClick={() => setShowCreateQuestionModal(true)}
         />
         

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { CreateQuestionData } from '@/types';
+import { Prisma } from '@prisma/client';
 
 export async function GET(request: NextRequest) {
   try {
@@ -15,20 +16,72 @@ export async function GET(request: NextRequest) {
     const query = searchParams.get('query');
     const sortBy = searchParams.get('sortBy') || 'recent';
 
-    const whereClause: {
-      groupId?: string;
-      text?: { contains: string; mode: 'insensitive' };
-    } = {};
+    const whereClause: Prisma.QuestionWhereInput = {};
     
     if (groupId) {
       whereClause.groupId = groupId;
     }
 
     if (query) {
-      whereClause.text = {
-        contains: query,
-        mode: 'insensitive'
+      whereClause.OR = [
+        {
+          text: {
+            contains: query,
+            mode: 'insensitive'
+          }
+        },
+        {
+          user: {
+            name: {
+              contains: query,
+              mode: 'insensitive'
+            }
+          }
+        },
+        {
+          answers: {
+            some: {
+              OR: [
+                {
+                  text: {
+                    contains: query,
+                    mode: 'insensitive'
+                  }
+                },
+                {
+                  user: {
+                    name: {
+                      contains: query,
+                      mode: 'insensitive'
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ];
+    }
+
+    // Add filter for unanswered questions
+    if (sortBy === 'unanswered') {
+      // Create a new where clause that includes the unanswered filter
+      const unansweredFilter = {
+        answers: {
+          none: {}
+        }
       };
+
+      if (Object.keys(whereClause).length === 0) {
+        // If no existing filters, just add the unanswered filter
+        Object.assign(whereClause, unansweredFilter);
+      } else {
+        // If there are existing filters, combine them with AND
+        const existingClause = { ...whereClause };
+        // Clear existing properties
+        (Object.keys(whereClause) as Array<keyof typeof whereClause>).forEach(key => delete whereClause[key]);
+        whereClause.AND = [existingClause, unansweredFilter];
+      }
     }
 
     const orderBy: { createdAt: 'desc' } = { createdAt: 'desc' };

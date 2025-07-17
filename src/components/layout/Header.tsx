@@ -11,7 +11,6 @@ interface HeaderProps {
   onSearchChange: (query: string) => void;
   sortBy: string;
   onSortChange: (sort: string) => void;
-  selectedGroupId?: string;
   onCreateQuestionClick: () => void;
 }
 
@@ -20,7 +19,6 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   sortBy,
   onSortChange,
-  selectedGroupId,
   onCreateQuestionClick,
 }) => {
 
@@ -29,13 +27,18 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4 flex-1">
           <div className="relative flex-1 max-w-md">
-            {/* <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-900 w-5 h-5" /> */}
+            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <Input
-              placeholder="Search questions and answers..."
+              placeholder="Search questions, answers, or users..."
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="pl-12 text-gray-900"
+              className="pl-12 text-gray-900 bg-white/70 border-gray-200 focus:bg-white focus:border-blue-300 transition-all duration-200"
             />
+            {searchQuery && (
+              <div className="absolute top-full left-0 mt-1 text-xs text-gray-500 bg-white/90 backdrop-blur-sm px-2 py-1 rounded border border-gray-200 shadow-sm">
+                💡 Tip: Search by question text, answer content, or user names
+              </div>
+            )}
           </div>
 
           <select
@@ -45,7 +48,7 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <option value="recent">Most Recent</option>
             <option value="popular">Most Liked</option>
-            <option value="user">By User</option>
+            <option value="unanswered">Unanswered</option>
           </select>
         </div>
 

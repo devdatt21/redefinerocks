@@ -11,6 +11,7 @@ interface QuestionCardProps {
   currentUser?: User;
   onAnswerClick?: (question: Question) => void;
   onQuestionClick?: (question: Question) => void;
+  searchQuery?: string;
 }
 
 export const QuestionCard: React.FC<QuestionCardProps> = ({
@@ -18,11 +19,31 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
   currentUser,
   onAnswerClick,
   onQuestionClick,
+  searchQuery,
 }) => {
   const [likeCount, setLikeCount] = useState(question._count?.likes || 0);
   const [isLiked, setIsLiked] = useState(false);
   const [liking, setLiking] = useState(false);
   const [copySuccess, setCopySuccess] = useState(false);
+
+  // Helper function to highlight search matches
+  const highlightSearchMatch = (text: string, query: string) => {
+    if (!query || !text) return text;
+    
+    const regex = new RegExp(`(${query})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} className="bg-yellow-200 text-yellow-900 font-medium px-1 rounded">
+          {part}
+        </span>
+      ) : part
+    );
+  };
+
+  // Check if user name matches search query
+  const isUserMatch = searchQuery && question.user?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
   const handleLike = async () => {
     if (liking || !currentUser) return;
@@ -87,7 +108,17 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               <div className="w-6 h-6 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                 <UserIcon className="w-3 h-3 text-white" />
               </div>
-              <span className="font-medium text-gray-700">{question.user?.name}</span>
+              <span className={cn(
+                "font-medium text-gray-700",
+                isUserMatch && "bg-yellow-200 text-yellow-900 px-2 py-1 rounded-full border border-yellow-300"
+              )}>
+                {searchQuery ? highlightSearchMatch(question.user?.name || '', searchQuery) : question.user?.name}
+              </span>
+              {isUserMatch && (
+                <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-medium border border-blue-200">
+                  👤 User Match
+                </span>
+              )}
               <span>•</span>
               <span>{new Date(question.createdAt).toLocaleDateString()}</span>
               <span>•</span>
@@ -96,7 +127,9 @@ export const QuestionCard: React.FC<QuestionCardProps> = ({
               </span>
             </div>
 
-            <p className="text-gray-900 text-lg mb-4 leading-relaxed font-medium whitespace-pre-wrap">{question.text}</p>
+            <p className="text-gray-900 text-lg mb-4 leading-relaxed font-medium whitespace-pre-wrap">
+              {searchQuery ? highlightSearchMatch(question.text, searchQuery) : question.text}
+            </p>
             
             <div className="flex items-center space-x-4 text-sm">
               <div className="flex items-center space-x-1 text-gray-600">

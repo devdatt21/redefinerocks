@@ -87,6 +87,16 @@ export const QuestionList: React.FC<QuestionListProps> = ({
     );
   }    return (
       <div className="flex-1 p-6">
+        {searchQuery && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <h3 className="text-lg font-semibold text-blue-900 mb-2">
+              🔍 Search Results for &ldquo;{searchQuery}&rdquo;
+            </h3>
+            <p className="text-blue-700 text-sm">
+              Showing results from questions, answers, and user names • {questions.length} result{questions.length !== 1 ? 's' : ''} found
+            </p>
+          </div>
+        )}
         <div className="space-y-4">
           {questions.map((question) => (
             <QuestionCard 
@@ -94,6 +104,7 @@ export const QuestionList: React.FC<QuestionListProps> = ({
               question={question} 
               onAnswerClick={onAnswerClick}
               onQuestionClick={onQuestionClick}
+              searchQuery={searchQuery}
             />
           ))}
         </div>
